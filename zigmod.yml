@@ -1,0 +1,6 @@
+id: 2opqbwybscuayjsb5d271j2sgfa4hvrla7nzalr8e6b7ka59
+name: zigularity
+license: MIT
+description: Black hole visualistion in Zig!
+root_dependencies:
+  - src: git https://github.com/fjebaker/zigode
