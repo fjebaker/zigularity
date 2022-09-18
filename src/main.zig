@@ -8,7 +8,7 @@ const Solver = zigode.Solver(f64, 4, BoyerLindquist);
 const Integrator = zigode.Tsit5(f64, 4, BoyerLindquist);
 
 pub fn callback(solver: *Solver, u: *const [4]f64, _: f64, p: *BoyerLindquist) void {
-    // check we're not about to hit the event horizon
+    // check we're not about to hit the event horizon or at effective infinity
     if ((p.inner_horizon * 1.05) > u[1]) {
         solver.terminate();
     } else {
@@ -35,25 +35,76 @@ pub fn main() !void {
     // observer position
     const obs_r = 1000.0;
     const obs_theta = std.math.degreesToRadians(f64, 85.0);
-    const bl1 = bl.BoyerLindquist(f64).initImpactParameters(1.0, 0.998, 7.0, 0.0, obs_r, obs_theta);
+    const image_width = 100;
+    const image_height = 100;
 
-    std.debug.print("L:{e} Q:{e}\n", .{ bl1.angular_momentum, bl1.carters_q });
+    // black hole parameters
+    const mass = 1.0;
+    const spin = 0.998;
 
-    var prob = Integrator.init(problem, bl1);
+    // allocate output image
+    var allocator = gpa.allocator();
+    var image: [][]f64 = try allocator.alloc([]f64, image_height);
+    defer allocator.free(image);
+    for (image) |*row| {
+        row.* = try allocator.alloc(f64, image_width);
+    }
+    defer for (image) |row| {
+        allocator.free(row);
+    };
+
+    // initial position four vector
     const u: [4]f64 = .{ 0.0, obs_r, obs_theta, 0.0 };
 
-    var solver = prob.solver(gpa.allocator());
+    // define impact parameter ranges
+    const square = 10.0;
+    const min_alpha = -square;
+    const min_beta = -square;
+    const max_alpha = square;
+    const max_beta = square;
 
-    var sol = try solver.solve(u, 0.0, 2000.0, .{ .save = true, .dt = 0.06, .max_iters = 30_000, .callback = callback });
-    defer sol.deinit();
+    const alpha_step = (max_alpha - min_alpha) / @as(f64, image_width);
+    const beta_step = (max_beta - min_beta) / @as(f64, image_width);
 
-    const stdout = std.io.getStdIn();
-    try sol.printInfo(stdout);
+    var alpha: f64 = min_alpha;
+    var i: usize = 0;
+    while (alpha <= max_alpha) : (alpha += alpha_step) {
+        var j: usize = 0;
+        std.debug.print("{d}\n", .{i});
 
-    var file = try std.fs.cwd().openFile("out.txt", .{ .mode = std.fs.File.OpenMode.write_only });
+        var beta: f64 = min_beta;
+        while (beta <= max_beta) : (beta += beta_step) {
+            // std.debug.print("alpha {e}, beta {e}\n", .{alpha, beta});
+            const p = BoyerLindquist.initImpactParameters(mass, spin, alpha, beta, obs_r, obs_theta);
+            var prob = Integrator.init(problem, p);
+            var solver = prob.solver(allocator);
+            var sol = try solver.solve(
+                u,
+                0.0,
+                2000.0,
+                .{ .save = false, .dt = 1.01, .max_iters = 30_000, .callback = callback },
+            );
+            defer sol.deinit();
+
+            // read out data
+            image[i][j] = sol.u[0][0];
+
+            j += 1;
+            if (j >= image_width) break; 
+        }
+        i += 1;
+        if (i >= image_height) break; 
+    }
+
+    var file = try std.fs.cwd().openFile("bh.txt", .{ .mode = std.fs.File.OpenMode.write_only });
     defer file.close();
 
-    for (sol.u[1..sol.index]) |*v| {
-        try file.writer().print("{e}\n", .{v.*});
+    var writer = file.writer();
+    for (image) |row| {
+        for (row) |v| {
+            try writer.print("{e},", .{v});
+        }
+        try writer.print("\n", .{});
     }
+
 }
