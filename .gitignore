@@ -1,0 +1,6 @@
+zig-*
+.zigmod
+bin
+venv
+.zigmod
+deps.zig
