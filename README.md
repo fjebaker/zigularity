@@ -50,6 +50,19 @@ plt.imshow(
 plt.show()
 ```
 
+It can also be used to calculate the so-called _shadow_ of a black hole, which traces the apparent shape of the event horizon:
+
+<p align="center">
+    <img src="./assets/kerr-shadow.png" alt="shadow-spinning" style="max-height:300px;">
+</p>
+
+Or for a non-spinning black hole:
+
+<p align="center">
+    <img src="./assets/schwarzschild-shadow.png" alt="shadow-non-spinning" style="max-height:300px;">
+</p>
+
+
 ## Todo
 
 - [ ] fix bad pixels bugs
