@@ -235,6 +235,8 @@ pub fn BoyerLindquist(comptime T: type) type {
             var self = Self.init(mass, spin, lq.angular_momentum, lq.carters_q);
             if (beta >= 0) {
                 self.positive_angular_potential = true;
+            } else {
+                self.positive_angular_potential = false;
             }
             return self;
         }
