@@ -4,3 +4,4 @@ bin
 venv
 .zigmod
 deps.zig
+zigmod.lock
