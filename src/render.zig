@@ -10,9 +10,10 @@ pub const Integrator = zigode.AdaptiveTsit5(f64, 4, BoyerLindquist);
 pub const ImageConfig = struct {
     observer_distance: f64 = 1000.0,
     observer_inclination: f64 = 85.0, // in degrees
-    image_width: usize = 200,
+    image_width: usize = 400,
     image_height: usize = 200,
-    mass: f64 = 200,
+    dtmax: f64 = 3.0,
+    mass: f64 = 1.0,
     spin: f64 = 0.998,
     // impact parameters
     min_alpha: f64 = -60.0,
@@ -78,7 +79,7 @@ pub fn run(
             // initialise the ODE problem
             var prob = Integrator.init(problem, p);
             // set dtmax to something small so we don't miss the disc
-            prob.dtmax = 1.0;
+            prob.dtmax = config.dtmax;
             var solver = prob.solver(allocator);
             var sol = try solver.solve(
                 u,
