@@ -55,7 +55,7 @@ plt.show()
 - [ ] fix bad pixels bugs
 - [ ] _severely_ clean and refactor the code
 - [ ] interpolate on integrator callback to smoothen the disc
-- [ ] (stretch) multi-threading cus it's a wee bit slow
+- [ ] ~~(stretch) multi-threading cus it's a wee bit slow~~ Not available on self-hosted Zig compiler yet.
 
 ## Dependencies
 
